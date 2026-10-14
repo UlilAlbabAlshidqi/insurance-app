@@ -1,0 +1,415 @@
+{
+  "project": {
+    "name": "Prediksi Biaya Medis Tahunan",
+    "description": "Model regresi untuk memperkirakan biaya medis tahunan (USD) berdasarkan profil demografi, gaya hidup, kondisi kesehatan, dan plan asuransi."
+  },
+  "input_user": {
+    "numerik": [
+      "age",
+      "bmi",
+      "children",
+      "annual_income_usd",
+      "chronic_diseases",
+      "alcohol_consumption_per_week",
+      "cholesterol",
+      "sleep_hours",
+      "stress_level",
+      "blood_pressure_systolic",
+      "blood_pressure_diastolic"
+    ],
+    "kategorikal": [
+      "gender",
+      "smoker",
+      "diabetes",
+      "region",
+      "occupation",
+      "marital_status",
+      "exercise_level",
+      "insurance_plan"
+    ]
+  },
+  "rentang_numerik": {
+    "age": {
+      "min": 18.0,
+      "max": 65.0
+    },
+    "bmi": {
+      "min": 16.0,
+      "max": 45.0
+    },
+    "children": {
+      "min": 0.0,
+      "max": 5.0
+    },
+    "annual_income_usd": {
+      "min": 18000.0,
+      "max": 176977.0
+    },
+    "chronic_diseases": {
+      "min": 0.0,
+      "max": 5.0
+    },
+    "alcohol_consumption_per_week": {
+      "min": 0.0,
+      "max": 14.0
+    },
+    "cholesterol": {
+      "min": 142.0,
+      "max": 306.0
+    },
+    "sleep_hours": {
+      "min": 4.4,
+      "max": 9.5
+    },
+    "stress_level": {
+      "min": 1.0,
+      "max": 10.0
+    },
+    "blood_pressure_systolic": {
+      "min": 92.0,
+      "max": 174.0
+    },
+    "blood_pressure_diastolic": {
+      "min": 60.0,
+      "max": 99.0
+    }
+  },
+  "pilihan_kategori": {
+    "gender": [
+      "Female",
+      "Male"
+    ],
+    "smoker": [
+      "No",
+      "Yes"
+    ],
+    "diabetes": [
+      "No",
+      "Yes"
+    ],
+    "region": [
+      "Central",
+      "Northeast",
+      "Northwest",
+      "Southeast",
+      "Southwest"
+    ],
+    "occupation": [
+      "Construction Worker",
+      "Doctor",
+      "Driver",
+      "Engineer",
+      "Lawyer",
+      "Manager",
+      "Nurse",
+      "Office Worker",
+      "Retail Worker",
+      "Teacher",
+      "Technician"
+    ],
+    "marital_status": [
+      "Divorced",
+      "Married",
+      "Single",
+      "Widowed"
+    ],
+    "exercise_level": [
+      "Low",
+      "Moderate",
+      "High"
+    ],
+    "insurance_plan": [
+      "Basic",
+      "Standard",
+      "Gold",
+      "Premium"
+    ]
+  },
+  "alur_input": {
+    "blood_pressure_systolic": {
+      "ditampilkan_di_form": true,
+      "masuk_ke_model_langsung": false,
+      "diproses_menjadi": "bp_category",
+      "keterangan": "User mengisi systolic dan diastolic (di data asli berbentuk string 'sys/dia'). Keduanya dipakai untuk menghitung bp_category."
+    },
+    "blood_pressure_diastolic": {
+      "ditampilkan_di_form": true,
+      "masuk_ke_model_langsung": false,
+      "diproses_menjadi": "bp_category"
+    },
+    "bmi": {
+      "ditampilkan_di_form": true,
+      "masuk_ke_model_langsung": true,
+      "juga_diproses_menjadi": [
+        "bmi_category",
+        "bmi_x_smoker",
+        "bmi_x_age",
+        "bmi_x_diabetes",
+        "bmi_x_chronic",
+        "bmi_x_exercise"
+      ]
+    }
+  },
+  "input_tidak_masuk_model": {
+    "customer_id": "Identifier, bukan fitur. Di-drop.",
+    "doctor_visits_per_year": "Leakage target: diasumsikan tercatat setelah customer memakai layanan kesehatan, periodenya sama dengan annual_medical_cost_usd. Tidak ada di form.",
+    "hospitalizations_last_year": "Leakage target: alasan sama dengan doctor_visits_per_year. Tidak ada di form.",
+    "blood_pressure": "String mentah 'sys/dia' tidak masuk model. Diganti bp_category."
+  },
+  "feature_engineering": {
+    "bp_category": {
+      "sumber_input": [
+        "blood_pressure_systolic",
+        "blood_pressure_diastolic"
+      ],
+      "acuan": "AHA/ACC",
+      "aturan_berurutan": [
+        {
+          "jika": "sys >= 140 atau dia >= 90",
+          "hasil": "stage_2"
+        },
+        {
+          "jika": "sys >= 130 atau dia >= 80",
+          "hasil": "stage_1"
+        },
+        {
+          "jika": "sys >= 120",
+          "hasil": "elevated"
+        },
+        {
+          "selain itu": "normal"
+        }
+      ],
+      "masuk_model": true
+    },
+    "bmi_category": {
+      "sumber_input": [
+        "bmi"
+      ],
+      "acuan": "WHO",
+      "bins": [
+        0,
+        18.5,
+        25,
+        30,
+        "inf"
+      ],
+      "right": false,
+      "labels": [
+        "underweight",
+        "normal",
+        "overweight",
+        "obese"
+      ],
+      "masuk_model": true
+    },
+    "bmi_x_smoker": {
+      "sumber_input": [
+        "bmi",
+        "smoker"
+      ],
+      "rumus": "bmi * smoker (0/1)",
+      "masuk_model": true
+    },
+    "bmi_x_age": {
+      "sumber_input": [
+        "bmi",
+        "age"
+      ],
+      "rumus": "bmi * age",
+      "masuk_model": true
+    },
+    "bmi_x_diabetes": {
+      "sumber_input": [
+        "bmi",
+        "diabetes"
+      ],
+      "rumus": "bmi * diabetes (0/1)",
+      "masuk_model": true
+    },
+    "bmi_x_chronic": {
+      "sumber_input": [
+        "bmi",
+        "chronic_diseases"
+      ],
+      "rumus": "bmi * chronic_diseases",
+      "masuk_model": true
+    },
+    "bmi_x_exercise": {
+      "sumber_input": [
+        "bmi",
+        "exercise_level"
+      ],
+      "rumus": "bmi * exercise_level (ordinal 0/1/2)",
+      "masuk_model": true
+    }
+  },
+  "encoding_manual": {
+    "binary": {
+      "smoker": {
+        "No": 0,
+        "Yes": 1
+      },
+      "diabetes": {
+        "No": 0,
+        "Yes": 1
+      },
+      "gender": {
+        "Female": 0,
+        "Male": 1
+      }
+    },
+    "ordinal": {
+      "exercise_level": {
+        "Low": 0,
+        "Moderate": 1,
+        "High": 2
+      },
+      "insurance_plan": {
+        "Basic": 0,
+        "Standard": 1,
+        "Gold": 2,
+        "Premium": 3
+      },
+      "bp_category": {
+        "normal": 0,
+        "elevated": 1,
+        "stage_1": 2,
+        "stage_2": 3
+      },
+      "bmi_category": {
+        "underweight": 0,
+        "normal": 1,
+        "overweight": 2,
+        "obese": 3
+      }
+    }
+  },
+  "fitur_model": [
+    "age",
+    "gender",
+    "bmi",
+    "children",
+    "smoker",
+    "region",
+    "occupation",
+    "annual_income_usd",
+    "exercise_level",
+    "chronic_diseases",
+    "alcohol_consumption_per_week",
+    "insurance_plan",
+    "diabetes",
+    "cholesterol",
+    "sleep_hours",
+    "stress_level",
+    "marital_status",
+    "bp_category",
+    "bmi_category",
+    "bmi_x_smoker",
+    "bmi_x_age",
+    "bmi_x_diabetes",
+    "bmi_x_chronic",
+    "bmi_x_exercise"
+  ],
+  "preprocessing": {
+    "numeric_log": [
+      "chronic_diseases",
+      "bmi_x_chronic"
+    ],
+    "numeric_standard_scaler": [
+      "age",
+      "bmi",
+      "children",
+      "annual_income_usd",
+      "alcohol_consumption_per_week",
+      "cholesterol",
+      "sleep_hours",
+      "stress_level",
+      "bmi_x_smoker",
+      "bmi_x_age",
+      "bmi_x_diabetes",
+      "bmi_x_exercise"
+    ],
+    "ordinal": {
+      "method": "passthrough",
+      "kolom": [
+        "exercise_level",
+        "insurance_plan",
+        "bp_category",
+        "bmi_category"
+      ]
+    },
+    "binary": {
+      "method": "passthrough",
+      "kolom": [
+        "smoker",
+        "diabetes",
+        "gender"
+      ]
+    },
+    "nominal": {
+      "method": "OneHotEncoder",
+      "handle_unknown": "ignore",
+      "sparse_output": false,
+      "kolom": [
+        "region",
+        "occupation",
+        "marital_status"
+      ]
+    }
+  },
+  "target": {
+    "nama": "annual_medical_cost_usd",
+    "transformasi_training": "log1p",
+    "transformasi_output": "expm1",
+    "keterangan": "Model dilatih pada log1p(annual_medical_cost_usd), lalu hasil prediksi dikembalikan ke skala USD dengan expm1."
+  },
+  "model": {
+    "name": "CatBoost",
+    "type": "CatBoostRegressor (di dalam TransformedTargetRegressor)",
+    "best_params": {
+      "learning_rate": 0.03,
+      "l2_leaf_reg": 5,
+      "iterations": 500,
+      "depth": 4
+    },
+    "cv_rmse_tuning": 3030.303012392763,
+    "tuned": {
+      "training_data": "80% (X_train)",
+      "file": "model_tuned.joblib",
+      "keterangan": "Skor evaluasi_test hanya valid untuk model ini."
+    },
+    "final": {
+      "training_data": "100% data (X, y)",
+      "file": "model_final.joblib",
+      "keterangan": "Parameter sama dengan tuned, dipakai untuk inference. Jangan dievaluasi di X_test (sudah ikut training)."
+    },
+    "versions": {
+      "sklearn": "1.6.1",
+      "catboost": "1.2.10"
+    }
+  },
+  "evaluasi_test": {
+    "dievaluasi_pada": "model_tuned (train 80%), test 20%, random_state=42",
+    "MAE": 2330.615054938665,
+    "MAPE": 0.162886701528673,
+    "MSE": 8654463.77357594,
+    "RMSE": 2941.8470003682955,
+    "R2": 0.843208906444441
+  },
+  "interval_estimasi": {
+    "confidence_level": 0.95,
+    "lower_percentile": 2.5,
+    "upper_percentile": 97.5,
+    "ratio_lower": 0.615242181128819,
+    "ratio_upper": 1.4315917625360046,
+    "description": "Rentang estimasi = prediksi x persentil 2.5% dan 97.5% dari rasio biaya aktual / biaya prediksi pada data pengujian.",
+    "catatan": "Berbasis distribusi error model, bukan confidence interval parameter model. Mengasumsikan error proporsional di semua level biaya."
+  },
+  "asumsi": [
+    "doctor_visits_per_year dan hospitalizations_last_year dibuang karena diasumsikan tercatat setelah layanan dipakai (leakage).",
+    "insurance_plan diasumsikan sudah ditentukan sebelum prediksi dibutuhkan.",
+    "Urutan plan Basic < Standard < Gold < Premium berdasarkan konvensi penamaan, tanpa dokumentasi resmi dataset. Rata-rata biaya di data tidak monoton (Gold > Premium).",
+    "Model hanya memetakan asosiasi di data ini, bukan efek kausal."
+  ]
+}
