@@ -12,7 +12,11 @@ Aplikasi dijalankan lokal (frontend di `localhost:3000`, backend di `localhost:8
 
 ## Data
 
-[7.500 baris, 22 kolom asli. Target: `annual_medical_cost_usd`. Data dibagi 80% latih dan 20% uji dengan `random_state=42`.]
+Dataset `medical_insurance_cost_dataset_enhanced.csv`: 7.500 baris dan 22 kolom asli. Target: `annual_medical_cost_usd`. Data dibagi 80% latih dan 20% uji dengan `random_state=42`.
+
+## Notebook
+
+Proses modelling lengkap ada di [notebooks/insurance_enhanced.ipynb](notebooks/insurance_enhanced.ipynb). Notebook dijalankan di Google Colab dengan data di Google Drive, jadi path seperti `/content/drive/MyDrive/...` perlu disesuaikan kalau dijalankan di tempat lain.
 
 ## Perbandingan model (5-fold CV)
 
@@ -28,9 +32,7 @@ Model boosting:
 
 ## Tuning dan evaluasi
 
-![Hasil tuning CatBoost](docs/hasil_tunning_catboost.png)
-
-[Parameter terbaik hasil RandomizedSearchCV (30 iterasi). Skor di test set: MAE ..., RMSE ..., R² ....]
+Parameter terbaik hasil RandomizedSearchCV (30 iterasi): `learning_rate=0.03`, `l2_leaf_reg=5`, `iterations=500`, `depth=4`. RMSE pada CV sekitar 3.030. Skor di test set: MAE sekitar $2.331, RMSE sekitar $2.942, R² sekitar 0,843.
 
 ## Interpretasi (SHAP)
 
