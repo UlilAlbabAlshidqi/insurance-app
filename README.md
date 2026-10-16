@@ -46,9 +46,10 @@ Nilai SHAP ada di skala log1p (target dilatih sebagai `log1p(biaya)`), jadi +0.1
 
 ```
 insurance-app/
-├── backend/    FastAPI, model_final.joblib, metadata.json
-├── frontend/   Next.js (App Router)
-└── docs/       screenshot
+├── backend/     FastAPI, model_final.joblib, metadata.json
+├── frontend/    Next.js (App Router)
+├── notebooks/   notebook modelling (Google Colab)
+└── docs/        screenshot
 ```
 
 ## Menjalankan
